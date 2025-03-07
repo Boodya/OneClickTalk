@@ -17,7 +17,8 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/one-click-talk",
+            "outputPath": "docs",
+            "baseHref": "/OneClickTalk/", 
             "index": "src/index.html",
             "browser": "src/main.ts",
             "polyfills": [
