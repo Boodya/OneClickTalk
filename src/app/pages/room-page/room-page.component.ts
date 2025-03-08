@@ -27,6 +27,8 @@ export class RoomPageComponent implements OnInit {
 
     const stream = await this.peerService.getMediaStream();
     this.localVideo.nativeElement.srcObject = stream;
+    this.localVideo.nativeElement.muted = true;
+    this.localVideo.nativeElement.volume = 0;
 
     this.peerService.initPeer(this.roomId).then((id) => {
       if (id === this.roomId) {
