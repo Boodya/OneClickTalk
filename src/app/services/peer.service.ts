@@ -37,13 +37,16 @@ export class PeerService {
     return this.currentCall;
   }
 
-  answerCall(onRemoteStream: (stream: MediaStream) => void): void {
+  answerCall(
+    onRemoteStream: (remoteStream: MediaStream, call: MediaConnection) => void
+  ) {
     this.peer.on('call', (call) => {
       call.answer(this.localStream);
-      call.on('stream', onRemoteStream);
-      this.currentCall = call;
+      call.on('stream', (remoteStream) => {
+        onRemoteStream(remoteStream, call);
+      });
     });
-  }
+  }  
 
   destroyPeer() {
     if (this.peer) {

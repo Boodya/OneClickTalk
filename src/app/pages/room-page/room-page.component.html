@@ -1,19 +1,28 @@
-<div class="video-container">
+<div class="video-container" (mousemove)="onUserActivity()" (touchstart)="onUserActivity()">
     <div class="video-wrapper">
-      <video #remoteVideo autoplay playsinline class="remote-video"></video>
-      <video #localVideo autoplay muted playsinline class="local-video"></video>
+        <video #remoteVideo autoplay playsinline class="remote-video"></video>
+        <video #localVideo autoplay muted playsinline class="local-video"></video>
     </div>
-  
-    <div class="controls-container">
-      <button class="control-btn mic-btn" (click)="toggleMic()">
-        🎙️
-      </button>
-      <button class="control-btn cam-btn" (click)="toggleCam()">
-        📹
-      </button>
-      <button class="control-btn exit-btn" (click)="exitCall()">
-        🚪
-      </button>
+
+    <div class="controls-container" [class.hidden]="!controlsVisible">
+        <button class="control-btn" [class.disabled]="!isMicEnabled" (click)="toggleMic()">
+            {{ isMicEnabled ? '🎙️' : '🎙️' }}
+        </button>
+        <button class="control-btn" [class.disabled]="!isCamEnabled" (click)="toggleCam()">
+            {{ isCamEnabled ? '📹' : '📹' }}
+        </button>
+        <button class="control-btn exit-btn" (click)="exitCall()">
+            🚪
+        </button>
     </div>
-  </div>
-  
+
+    <div class="modal" [class.hidden]="!showWaitingModal">
+        <h2 class="modal-title">{{ waitingModalTitle }}</h2>
+        <h2 class="modal-title">Ожидаем собеседника...</h2>
+        <p class="modal-message">
+            Чтобы начать разговор, cкопируйте ссылку на видеозвонок и отправьте её собеседнику удобным вам способом
+            
+        </p>
+        <button class="btn-big" (click)="copyRoomLink()">Скопировать ссылку</button>
+    </div>
+</div>
