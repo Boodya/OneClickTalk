@@ -44,4 +44,11 @@ export class PeerService {
       this.currentCall = call;
     });
   }
+
+  destroyPeer() {
+    if (this.peer) {
+      this.peer.destroy();
+      //this.peer = undefined;
+    }
+  }
 }

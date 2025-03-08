@@ -1,21 +1,19 @@
 .video-container {
-    position: relative;
-    width: 100%;
-    height: 100vh;
+    position: fixed;
+    inset: 0;
     background-color: #000;
     overflow: hidden;
     display: flex;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
 
     .video-wrapper {
-        position: relative;
-        text-align: center;
         width: 100%;
-        max-width: 1200px;
         height: 100%;
-        border-radius: 16px;
-        overflow: hidden;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
 
         .remote-video {
             width: 100%;
@@ -26,67 +24,68 @@
 
         .local-video {
             position: absolute;
-            width: 25%;
-            height: 15%;
-            bottom: 100px;
-            right: 20px;
-            object-fit: contain;
+            width: 15vw;
+            max-width: 200px;
+            min-width: 120px;
+            bottom: 5%;
+            right: 2%;
+            object-fit: cover;
             border-radius: 12px;
             border: 2px solid #fff;
+            z-index: 2;
             background-color: #222;
-            z-index: 10;
         }
     }
 
     .controls-container {
         position: absolute;
-        bottom: 2%;
+        bottom: 5%;
         left: 50%;
-        width: 100%;
         transform: translateX(-50%);
         display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 10px;
+        gap: 12px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        z-index: 3;
 
-        button {
-            padding: 8px 16px;
-            border-radius: 20px;
+        .control-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
             border: none;
             cursor: pointer;
-            font-size: 22px;
+            font-size: 24px;
             color: white;
-            background-color: rgba(255, 255, 255, 0.15);
-            transition: transform 0.2s, background-color 0.2s;
+            transition: transform 0.2s;
 
             &:hover {
-                transform: scale(1.05);
-            }
-
-            &.mic-btn {
-                background-color: #007bff;
-            }
-
-            &.cam-btn {
-                background-color: #837070;
-            }
-
-            &.exit-btn {
-                background-color: #c82a2a7a;
+                transform: scale(1.1);
             }
         }
+
+        .mic-btn {
+            background-color: #007bff;
+        }
+
+        .cam-btn {
+            background-color: #6c757d;
+        }
+
+        .exit-btn {
+            background-color: #dc3545;
+        }
+    }
+
+    &:hover .controls-container,
+    &:active .controls-container,
+    &:focus-within .controls-container {
+        opacity: 1;
     }
 }
 
-@media (max-width: 768px) {
-    .video-container .video-wrapper .local-video {
-        width: 120px;
-        height: 80px;
-        bottom: 10%;
-        right: 10px;
-    }
-
-    .controls-container {
-        bottom: 10px;
-    }
+// prevent scrolling completely
+html,
+body {
+    overflow: hidden;
+    height: 100%;
 }
