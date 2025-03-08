@@ -1,18 +1,30 @@
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { v4 as uuidv4 } from 'uuid';
+// home-page.component.ts
+import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { RoomPageComponent } from '../room-page/room-page.component';
 
 @Component({
-  standalone: true,
   selector: 'app-home-page',
+  standalone: true,
+  imports: [CommonModule, RoomPageComponent],
   templateUrl: './home-page.component.html',
   styleUrls: ['./home-page.component.scss']
 })
-export class HomePageComponent {
-  constructor(private router: Router) { }
+export class HomePageComponent implements OnInit {
+  roomId!: string | null;
 
-  createRoom() {
-    const roomId = uuidv4();
-    this.router.navigate(['/rooms', roomId]);
+  constructor(private route: ActivatedRoute) { }
+
+  ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      this.roomId = params['roomId'] || null;
+    });
   }
+  
+  createRoom() {
+    const newRoomId = crypto.randomUUID();
+    window.location.href = `${location.origin}?roomId=${newRoomId}`;
+  }
+
 }

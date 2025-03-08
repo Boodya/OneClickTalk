@@ -1,12 +1,19 @@
 <div class="video-container">
     <div class="video-wrapper">
-        <video #remoteVideo autoplay playsinline class="remote-video"></video>
-        <video #localVideo autoplay muted playsinline class="local-video"></video>
+      <video #remoteVideo autoplay playsinline class="remote-video"></video>
+      <video #localVideo autoplay muted playsinline class="local-video"></video>
     </div>
-
+  
     <div class="controls-container">
-        <button class="mic-btn">🎙️</button>
-        <button class="cam-btn">📹</button>
-        <button class="exit-btn">🚪</button>
+      <button class="control-btn mic-btn" (click)="toggleMic()">
+        🎙️
+      </button>
+      <button class="control-btn cam-btn" (click)="toggleCam()">
+        📹
+      </button>
+      <button class="control-btn exit-btn" (click)="exitCall()">
+        🚪
+      </button>
     </div>
-</div>
+  </div>
+  
