@@ -24,7 +24,7 @@ export class HomePageComponent implements OnInit {
   
   createRoom() {
     const newRoomId = crypto.randomUUID();
-    window.location.href = `${location.origin}?roomId=${newRoomId}`;
+    window.location.href = `${location.origin}${location.pathname}?roomId=${newRoomId}`;
   }
 
 }
