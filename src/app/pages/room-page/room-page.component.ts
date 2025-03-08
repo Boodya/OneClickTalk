@@ -21,7 +21,7 @@ export class RoomPageComponent implements OnInit {
 
   async ngOnInit() {
     this.roomId = this.route.snapshot.params['roomId'];
-    const roomLink = `${location.origin}/?roomId=${this.roomId}`;
+    const roomLink = `${location.origin}/OneClickTalk/?roomId=${this.roomId}`;
     navigator.clipboard.writeText(roomLink);
     console.log('Ссылка на комнату скопирована:', roomLink);
 
