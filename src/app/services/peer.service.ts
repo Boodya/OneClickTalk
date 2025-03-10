@@ -15,21 +15,25 @@ export class PeerService {
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            {
-              urls: 'turn:eu-central.relay.metered.ca:80',
-              username: '',
-              credential: ''
-            },
-            {
-              urls: 'turn:eu-central.relay.metered.ca:443',
-              username: '',
-              credential: ''
-            },
-            {
-              urls: 'turns:eu-central.relay.metered.ca:443',
-              username: '',
-              credential: ''
-            }
+            { urls: "stun:stun1.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun3.l.google.com:19302" },
+            //As example you can use a TURN for mobile network
+            // {
+            //   urls: 'turn:eu-central.relay.metered.ca:80',
+            //   username: '',
+            //   credential: ''
+            // },
+            // {
+            //   urls: 'turn:eu-central.relay.metered.ca:443',
+            //   username: '',
+            //   credential: ''
+            // },
+            // {
+            //   urls: 'turns:eu-central.relay.metered.ca:443',
+            //   username: '',
+            //   credential: ''
+            // }
           ]
         }
       };
@@ -56,20 +60,39 @@ export class PeerService {
     return this.localStream;
   }
 
-  callPeer(remotePeerId: string, stream: MediaStream): MediaConnection {
-    this.currentCall = this.peer.call(remotePeerId, stream);
-    return this.currentCall;
-  }
-
   answerCall(
-    onRemoteStream: (remoteStream: MediaStream, call: MediaConnection) => void
+    onRemoteStream: (remoteStream: MediaStream, call: MediaConnection) => void,
+    onConnectionStateChange?: (state: RTCIceConnectionState) => void
   ) {
     this.peer.on('call', (call) => {
       call.answer(this.localStream);
+  
       call.on('stream', (remoteStream) => {
         onRemoteStream(remoteStream, call);
       });
+  
+      call.peerConnection.oniceconnectionstatechange = () => {
+        if (onConnectionStateChange) {
+          onConnectionStateChange(call.peerConnection.iceConnectionState);
+        }
+      };
     });
+  }
+  
+  callPeer(
+    remotePeerId: string,
+    stream: MediaStream,
+    onConnectionStateChange?: (state: RTCIceConnectionState) => void
+  ): MediaConnection {
+    this.currentCall = this.peer.call(remotePeerId, stream);
+  
+    this.currentCall.peerConnection.oniceconnectionstatechange = () => {
+      if (onConnectionStateChange) {
+        onConnectionStateChange(this.currentCall!.peerConnection.iceConnectionState);
+      }
+    };
+  
+    return this.currentCall;
   }  
 
   destroyPeer() {
