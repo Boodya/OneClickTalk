@@ -1,6 +1,6 @@
-import { Component, ElementRef, Input, OnInit, ViewChild, OnDestroy } from '@angular/core';
-import { PeerService } from '../../services/peer.service';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
+import { PeerService } from '../../services/peer.service';
 
 @Component({
   selector: 'app-room-page',
@@ -22,7 +22,8 @@ export class RoomPageComponent implements OnInit, OnDestroy {
   activityTimeout!: ReturnType<typeof setTimeout>;
 
   showWaitingModal = false;
-  waitingModalTitle = 'Видеочат создан';
+  waitingModalTitle = '';
+  modalMessage = ''
   roomLink = '';
 
   constructor(private peerService: PeerService, private router: Router) { }
@@ -41,28 +42,62 @@ export class RoomPageComponent implements OnInit, OnDestroy {
 
     this.peerService.initPeer(this.roomId).then((id) => {
       if (id === this.roomId) {
-        this.showWaitingModal = true;
-        this.peerService.answerCall((remoteStream, call) => {
-          console.log('call started');
-          this.remoteVideo.nativeElement.srcObject = remoteStream;
-          this.showWaitingModal = false;
+        this.showInitialUI();
 
-          call.on('close', () => {
-            console.log('call ended');
-            this.waitingModalTitle = 'Собеседник покинул видеочат'
-            this.showWaitingModal = true;
-          });
-        });
+        this.peerService.answerCall(
+          (remoteStream, call) => {
+            this.remoteVideo.nativeElement.srcObject = remoteStream;
+            this.showWaitingModal = false;
+
+            call.on('close', () => {
+              console.log('call ended');
+              this.showCallEndedUI();
+            });
+          },
+          (iceConnectionState) => {
+            if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected') {
+              this.showBadInternetUI();
+            }
+          }
+        );
       }
     }).catch(async () => {
       await this.peerService.initPeer();
-      const call = this.peerService.callPeer(this.roomId, this.localStream);
+      const call = this.peerService.callPeer(
+        this.roomId,
+        this.localStream,
+        (iceConnectionState) => {
+          if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected') {
+            this.showBadInternetUI();
+          }
+        }
+      );
+
       call.on('stream', (remoteStream) => {
         this.remoteVideo.nativeElement.srcObject = remoteStream;
       });
     });
 
     this.startInactivityTimer();
+  }
+
+  showInitialUI(){
+    this.waitingModalTitle = 'Видеочат создан';
+    this.modalMessage = 'Чтобы начать разговор, cкопируйте ссылку на видеозвонок и отправьте её собеседнику удобным вам способом';
+    this.showWaitingModal = true;
+  }
+
+  showCallEndedUI(){
+    this.showInitialUI();
+    this.waitingModalTitle = 'Собеседник покинул видеочат';
+    this.showWaitingModal = true;
+  }
+
+  showBadInternetUI() {
+    this.waitingModalTitle = 'Звонки через мобильную сеть недоступны';
+    this.modalMessage = 'У одного из собеседников используется мобильная сеть. К сожалению полностью анонимные PeerToPeer звонки недоступны через мобильную сеть. ' +
+      'Пожалуйста используйте WIFI или проводное интернет соединение.';
+    this.showWaitingModal = true;
   }
 
   ngOnDestroy() {

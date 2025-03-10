@@ -18,10 +18,8 @@
 
     <div class="modal" [class.hidden]="!showWaitingModal">
         <h2 class="modal-title">{{ waitingModalTitle }}</h2>
-        <h2 class="modal-title">Ожидаем собеседника...</h2>
         <p class="modal-message">
-            Чтобы начать разговор, cкопируйте ссылку на видеозвонок и отправьте её собеседнику удобным вам способом
-            
+            {{ modalMessage }}
         </p>
         <button class="btn-big" (click)="copyRoomLink()">Скопировать ссылку</button>
     </div>
