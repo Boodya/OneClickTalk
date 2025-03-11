@@ -14,26 +14,12 @@ export class PeerService {
       const config = {
         config: {
           iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: "stun:stun1.l.google.com:19302" },
-            { urls: "stun:stun2.l.google.com:19302" },
-            { urls: "stun:stun3.l.google.com:19302" },
-            //As example you can use a TURN for mobile network
-            // {
-            //   urls: 'turn:eu-central.relay.metered.ca:80',
-            //   username: '',
-            //   credential: ''
-            // },
-            // {
-            //   urls: 'turn:eu-central.relay.metered.ca:443',
-            //   username: '',
-            //   credential: ''
-            // },
-            // {
-            //   urls: 'turns:eu-central.relay.metered.ca:443',
-            //   username: '',
-            //   credential: ''
-            // }
+            { urls: '' },
+            {
+              urls: '',
+              username: '',
+              credential: ''
+            }
           ]
         }
       };
