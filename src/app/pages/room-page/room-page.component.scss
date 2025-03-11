@@ -73,9 +73,12 @@
         .exit-btn {
             background-color: #742f2f;
         }
+
+        .settings-btn {
+            background-color: #007bff;
+        }
     }
 
-    /* Окно ожидания/копирования ссылки */
     .modal {
         position: absolute;
         top: 30%;
@@ -96,16 +99,6 @@
             display: none;
         }
 
-        .spinner {
-            margin: 0 auto 16px auto;
-            border: 4px solid #ccc;
-            border-top: 4px solid #007bff;
-            border-radius: 50%;
-            width: 36px;
-            height: 36px;
-            animation: spin 1s linear infinite;
-        }
-
         .modal-title {
             font-size: 20px;
             margin-bottom: 10px;
@@ -117,7 +110,7 @@
             line-height: 1.4;
         }
 
-        .modal-copy {
+        .btn-big {
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
@@ -131,17 +124,6 @@
                 background-color: #0056b3;
             }
         }
-    }
-}
-
-/* Анимация спиннера */
-@keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
     }
 }
 

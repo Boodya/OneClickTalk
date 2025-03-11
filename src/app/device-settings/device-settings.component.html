@@ -1,0 +1,31 @@
+<div class="device-settings">
+    <h2>Настройки устройств</h2>
+    <label>
+        Камера:
+        <select [(ngModel)]="selectedVideoDeviceId">
+            <option *ngFor="let device of videoDevices" [value]="device.deviceId">
+                {{ device.label || 'Камера ' + device.deviceId }}
+            </option>
+        </select>
+    </label>
+    <label>
+        Микрофон:
+        <select [(ngModel)]="selectedAudioInputDeviceId">
+            <option *ngFor="let device of audioInputDevices" [value]="device.deviceId">
+                {{ device.label || 'Микрофон ' + device.deviceId }}
+            </option>
+        </select>
+    </label>
+    <label *ngIf="audioOutputDevices.length > 0">
+        Аудиовыход:
+        <select [(ngModel)]="selectedAudioOutputDeviceId">
+            <option *ngFor="let device of audioOutputDevices" [value]="device.deviceId">
+                {{ device.label || 'Динамик ' + device.deviceId }}
+            </option>
+        </select>
+    </label>
+    <div class="modal-buttons">
+        <button (click)="save()">Сохранить</button>
+        <button (click)="cancel()">Отмена</button>
+    </div>
+</div>

@@ -6,21 +6,28 @@
 
     <div class="controls-container" [class.hidden]="!controlsVisible">
         <button class="control-btn" [class.disabled]="!isMicEnabled" (click)="toggleMic()">
-            {{ isMicEnabled ? '🎙️' : '🎙️' }}
+            {{ isMicEnabled ? '🎙️' : '🔇' }}
         </button>
         <button class="control-btn" [class.disabled]="!isCamEnabled" (click)="toggleCam()">
-            {{ isCamEnabled ? '📹' : '📹' }}
+            {{ isCamEnabled ? '📹' : '🚫' }}
         </button>
         <button class="control-btn exit-btn" (click)="exitCall()">
             🚪
         </button>
+        <!-- New Device Settings Button -->
+        <button class="control-btn settings-btn" (click)="openDeviceSettings()">
+            ⚙️
+        </button>
     </div>
 
+    <!-- Waiting Modal (already present) -->
     <div class="modal" [class.hidden]="!showWaitingModal">
         <h2 class="modal-title">{{ waitingModalTitle }}</h2>
-        <p class="modal-message">
-            {{ modalMessage }}
-        </p>
+        <p class="modal-message">{{ modalMessage }}</p>
         <button class="btn-big" (click)="copyRoomLink()">Скопировать ссылку</button>
     </div>
+
+    <app-device-settings *ngIf="showDeviceSettings" [currentStream]="localStream"
+        (settingsSaved)="applyDeviceSettings($event)" (settingsCanceled)="closeDeviceSettings()">
+    </app-device-settings>
 </div>
