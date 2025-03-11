@@ -94,9 +94,8 @@ export class RoomPageComponent implements OnInit, OnDestroy {
   }
 
   showBadInternetUI() {
-    this.waitingModalTitle = 'Звонки через мобильную сеть недоступны';
-    this.modalMessage = 'У одного из собеседников используется мобильная сеть. К сожалению полностью анонимные PeerToPeer звонки недоступны через мобильную сеть. ' +
-      'Пожалуйста используйте WIFI или проводное интернет соединение.';
+    this.waitingModalTitle = 'Проблемы со связью :(';
+    this.modalMessage = 'Попробуйте подключиться к другой сети или пересоздать видеочат';
     this.showWaitingModal = true;
   }
 
