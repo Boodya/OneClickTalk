@@ -1,10 +1,14 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { PeerService } from '../../services/peer.service';
+import { FormsModule } from '@angular/forms';
+import { DeviceSettingsComponent } from '../../device-settings/device-settings.component';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-room-page',
   standalone: true,
+  imports: [FormsModule, CommonModule, DeviceSettingsComponent],
   templateUrl: './room-page.component.html',
   styleUrls: ['./room-page.component.scss']
 })
@@ -23,9 +27,11 @@ export class RoomPageComponent implements OnInit, OnDestroy {
 
   showWaitingModal = false;
   waitingModalTitle = '';
-  modalMessage = ''
+  modalMessage = '';
   roomLink = '';
 
+  showDeviceSettings = false;
+  
   constructor(private peerService: PeerService, private router: Router) { }
 
   async ngOnInit() {
@@ -43,12 +49,10 @@ export class RoomPageComponent implements OnInit, OnDestroy {
     this.peerService.initPeer(this.roomId).then((id) => {
       if (id === this.roomId) {
         this.showInitialUI();
-
         this.peerService.answerCall(
           (remoteStream, call) => {
             this.remoteVideo.nativeElement.srcObject = remoteStream;
             this.showWaitingModal = false;
-
             call.on('close', () => {
               console.log('call ended');
               this.showCallEndedUI();
@@ -79,25 +83,6 @@ export class RoomPageComponent implements OnInit, OnDestroy {
     });
 
     this.startInactivityTimer();
-  }
-
-  showInitialUI(){
-    this.waitingModalTitle = 'Видеочат создан';
-    this.modalMessage = 'Чтобы начать разговор, cкопируйте ссылку на видеозвонок и отправьте её собеседнику удобным вам способом';
-    this.showWaitingModal = true;
-  }
-
-  showCallEndedUI(){
-    this.showInitialUI();
-    this.waitingModalTitle = 'Собеседник покинул видеочат';
-    this.showWaitingModal = true;
-  }
-
-  showBadInternetUI() {
-    this.waitingModalTitle = 'Звонки через мобильную сеть недоступны';
-    this.modalMessage = 'У одного из собеседников используется мобильная сеть. К сожалению полностью анонимные PeerToPeer звонки недоступны через мобильную сеть. ' +
-      'Пожалуйста используйте WIFI или проводное интернет соединение.';
-    this.showWaitingModal = true;
   }
 
   ngOnDestroy() {
@@ -140,5 +125,55 @@ export class RoomPageComponent implements OnInit, OnDestroy {
         console.log('Room link copied:', this.roomLink);
       }).catch(err => console.error('Clipboard error:', err));
     }
+  }
+
+  showInitialUI() {
+    this.waitingModalTitle = 'Видеочат создан';
+    this.modalMessage = 'Чтобы начать разговор, скопируйте ссылку на видеозвонок и отправьте её собеседнику удобным вам способом';
+    this.showWaitingModal = true;
+  }
+
+  showCallEndedUI() {
+    this.waitingModalTitle = 'Собеседник покинул видеочат';
+    this.modalMessage = 'Скопируйте ссылку и пригласите собеседника заново.';
+    this.showWaitingModal = true;
+  }
+
+  showBadInternetUI() {
+    this.waitingModalTitle = 'Проблемы со связью :(';
+    this.modalMessage = 'Попробуйте подключиться к другой сети или пересоздать видеочат';
+    this.showWaitingModal = true;
+  }
+
+  openDeviceSettings() {
+    if (this.showDeviceSettings) {
+      this.closeDeviceSettings();
+      return;
+    }
+    this.showDeviceSettings = true;
+  }
+
+  closeDeviceSettings() {
+    this.showDeviceSettings = false;
+  }
+
+  applyDeviceSettings(settings: {
+    videoDeviceId: string;
+    audioInputDeviceId: string;
+    audioOutputDeviceId: string;
+  }) {
+    this.showDeviceSettings = false;
+    const constraints = {
+      video: { deviceId: { exact: settings.videoDeviceId } },
+      audio: { deviceId: { exact: settings.audioInputDeviceId } }
+    };
+
+    navigator.mediaDevices.getUserMedia(constraints)
+      .then((stream) => {
+        this.localStream.getTracks().forEach(track => track.stop());
+        this.localStream = stream;
+        this.localVideo.nativeElement.srcObject = stream;
+      })
+      .catch(err => console.error('Error applying device settings:', err));
   }
 }
