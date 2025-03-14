@@ -1,9 +1,12 @@
-import { Component, ElementRef, Input, OnInit, ViewChild, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-import { PeerService } from '../../services/peer.service';
-import { FormsModule } from '@angular/forms';
-import { DeviceSettingsComponent } from '../../device-settings/device-settings.component';
 import { CommonModule } from '@angular/common';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { MediaConnection } from 'peerjs';
+import { DeviceSettingsComponent } from '../../device-settings/device-settings.component';
+import { PeerService } from '../../services/peer.service';
+
+type Role = 'initiator' | 'joiner';
 
 @Component({
   selector: 'app-room-page',
@@ -19,9 +22,10 @@ export class RoomPageComponent implements OnInit, OnDestroy {
   @ViewChild('remoteVideo') remoteVideo!: ElementRef<HTMLVideoElement>;
 
   localStream!: MediaStream;
+  remoteStream!: MediaStream;
+
   isMicEnabled = true;
   isCamEnabled = true;
-
   controlsVisible = true;
   activityTimeout!: ReturnType<typeof setTimeout>;
 
@@ -29,9 +33,13 @@ export class RoomPageComponent implements OnInit, OnDestroy {
   waitingModalTitle = '';
   modalMessage = '';
   roomLink = '';
-
   showDeviceSettings = false;
-  
+  role: Role = 'joiner';
+
+  currentCall?: MediaConnection;
+  reconnectionAttempts = 0;
+  maxReconnectionAttempts = 3;
+
   constructor(private peerService: PeerService, private router: Router) { }
 
   async ngOnInit() {
@@ -46,43 +54,49 @@ export class RoomPageComponent implements OnInit, OnDestroy {
     this.localVideo.nativeElement.muted = true;
     this.localVideo.nativeElement.volume = 0;
 
-    this.peerService.initPeer(this.roomId).then((id) => {
-      if (id === this.roomId) {
-        this.showInitialUI();
-        this.peerService.answerCall(
-          (remoteStream, call) => {
-            this.remoteVideo.nativeElement.srcObject = remoteStream;
-            this.showWaitingModal = false;
-            call.on('close', () => {
-              console.log('call ended');
-              this.showCallEndedUI();
-            });
-          },
-          (iceConnectionState) => {
-            if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected') {
-              this.showBadInternetUI();
-            }
-          }
-        );
-      }
-    }).catch(async () => {
-      await this.peerService.initPeer();
-      const call = this.peerService.callPeer(
-        this.roomId,
-        this.localStream,
-        (iceConnectionState) => {
-          if (iceConnectionState === 'failed' || iceConnectionState === 'disconnected') {
-            this.showBadInternetUI();
-          }
-        }
-      );
-
-      call.on('stream', (remoteStream) => {
-        this.remoteVideo.nativeElement.srcObject = remoteStream;
-      });
-    });
-
+    try {
+      await this.initiateCall();
+    } catch (error) {
+      await this.joinCall();
+    }
     this.startInactivityTimer();
+  }
+
+  async initiateCall() {
+    const id = await this.peerService.initPeer(this.roomId);
+    if (id === this.roomId) {
+      this.role = 'initiator';
+      this.showInitialUI();
+      this.peerService.answerCall(
+        (rS, c) => {
+          this.hideMessageUi();
+          this.answerCall(rS, c);
+        },
+        (s) => this.handleConnectionStateChange(s)
+      );
+    }
+  }
+
+  async joinCall() {
+    this.role = 'joiner';
+    await this.peerService.initPeer();
+    const call = this.peerService.callPeer(
+      this.roomId,
+      this.localStream,
+      (s) => this.handleConnectionStateChange(s)
+    );
+    this.currentCall = call;
+    call.on('close', () => this.handleConnectionStateChange('disconnected'));
+    call.on('stream', (remoteStream) => {
+      this.remoteVideo.nativeElement.srcObject = remoteStream;
+    });
+  }
+
+  answerCall(remoteStream: MediaStream, call: MediaConnection) {
+    this.remoteStream = remoteStream;
+    this.remoteVideo.nativeElement.srcObject = remoteStream;
+    this.currentCall = call;
+    call.on('close', () => this.handleConnectionStateChange('disconnected'));
   }
 
   ngOnDestroy() {
@@ -103,19 +117,20 @@ export class RoomPageComponent implements OnInit, OnDestroy {
 
   toggleMic() {
     this.isMicEnabled = !this.isMicEnabled;
-    this.localStream.getAudioTracks().forEach(
-      track => track.enabled = this.isMicEnabled);
+    this.localStream.getAudioTracks().forEach(track => track.enabled = this.isMicEnabled);
   }
 
   toggleCam() {
     this.isCamEnabled = !this.isCamEnabled;
-    this.localStream.getVideoTracks().forEach(
-      track => track.enabled = this.isCamEnabled);
+    this.localStream.getVideoTracks().forEach(track => track.enabled = this.isCamEnabled);
   }
 
   exitCall() {
     this.localStream.getTracks().forEach(track => track.stop());
     this.peerService.destroyPeer();
+    if (this.currentCall) {
+      this.currentCall.close();
+    }
     this.router.navigate(['/']);
   }
 
@@ -127,29 +142,49 @@ export class RoomPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  showInitialUI() {
-    this.waitingModalTitle = 'Видеочат создан';
-    this.modalMessage = 'Чтобы начать разговор, скопируйте ссылку на видеозвонок и отправьте её собеседнику удобным вам способом';
+  showMessageUI() {
     this.showWaitingModal = true;
+    this.remoteVideo.nativeElement.srcObject = null;
+  }
+
+  hideMessageUi() {
+    this.showWaitingModal = false;
+    this.remoteVideo.nativeElement.srcObject = this.remoteStream;
+  }
+
+  showInitialUI() {
+    this.waitingModalTitle = 'Все готово';
+    this.modalMessage = 'Чтобы начать разговор, скопируйте ссылку на видеозвонок и отправьте её собеседнику';
+    this.showMessageUI();
   }
 
   showCallEndedUI() {
     this.waitingModalTitle = 'Собеседник покинул видеочат';
-    this.modalMessage = 'Скопируйте ссылку и пригласите собеседника заново.';
-    this.showWaitingModal = true;
+    this.modalMessage = 'Скопируйте ссылку и пригласите нового собеседника';
+    this.showMessageUI();
   }
 
   showBadInternetUI() {
-    this.waitingModalTitle = 'Проблемы со связью :(';
+    this.waitingModalTitle = 'Проблемы со связью';
     this.modalMessage = 'Попробуйте подключиться к другой сети или пересоздать видеочат';
-    this.showWaitingModal = true;
+    this.showMessageUI();
+  }
+
+  handleConnectionStateChange(state: RTCIceConnectionState) {
+    console.log('iceConnection: ' + state);
+
+    if (state == 'disconnected' || state == 'closed') {
+      if (this.role == 'joiner')
+        this.initiateCall().then(() => this.showCallEndedUI());
+      else this.showCallEndedUI();
+    } else if (state == 'failed') {
+      if (this.role == 'joiner')
+        this.initiateCall().then(() => this.showBadInternetUI());
+      else this.showBadInternetUI();
+    }
   }
 
   openDeviceSettings() {
-    if (this.showDeviceSettings) {
-      this.closeDeviceSettings();
-      return;
-    }
     this.showDeviceSettings = true;
   }
 
