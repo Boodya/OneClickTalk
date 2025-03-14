@@ -14,13 +14,11 @@
         <button class="control-btn exit-btn" (click)="exitCall()">
             🚪
         </button>
-        <!-- New Device Settings Button -->
         <button class="control-btn settings-btn" (click)="openDeviceSettings()">
             ⚙️
         </button>
     </div>
-
-    <!-- Waiting Modal (already present) -->
+    
     <div class="modal" [class.hidden]="!showWaitingModal">
         <h2 class="modal-title">{{ waitingModalTitle }}</h2>
         <p class="modal-message">{{ modalMessage }}</p>

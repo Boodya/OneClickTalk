@@ -14,11 +14,11 @@ export class PeerService {
       const config = {
         config: {
           iceServers: [
-            { urls: '' },
+            { urls: 'stun:37.252.10.49:3478' },
             {
-              urls: '',
-              username: '',
-              credential: ''
+              urls: 'turn:37.252.10.49:3478',
+              username: 'oneclicktalk',
+              credential: 'cb5c70dff43a7aa8b283f'
             }
           ]
         }
